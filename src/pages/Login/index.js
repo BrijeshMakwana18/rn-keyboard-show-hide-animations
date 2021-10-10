@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,85 @@ import {
   Image,
   TextInput,
   Keyboard,
+  Animated,
 } from 'react-native';
 import styles from './styles';
 import {fonts, images, colors, perfectSize} from '../../theme';
 export default function Login() {
+  const backArrowMarginLeft = useRef(
+    new Animated.Value(perfectSize(0)),
+  ).current;
+  const titleMarginTop = useRef(new Animated.Value(0)).current;
+  const titleOpacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    let isMounted = true;
+    if (isMounted) {
+      this.keyboardDidShowListener = Keyboard.addListener(
+        'keyboardDidShow',
+        _keyboardDidShow,
+      );
+      this.keyboardDidHideListener = Keyboard.addListener(
+        'keyboardDidHide',
+        _keyboardDidHide,
+      );
+
+      return () => {
+        this.keyboardDidHideListener?.remove;
+        this.keyboardDidShowListener?.remove;
+      };
+    }
+  });
+  const _keyboardDidShow = () => {
+    Animated.timing(backArrowMarginLeft, {
+      toValue: perfectSize(-500),
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+    Animated.parallel([
+      Animated.timing(titleMarginTop, {
+        toValue: perfectSize(-200),
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(titleOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+  const _keyboardDidHide = () => {
+    Animated.timing(backArrowMarginLeft, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+    Animated.parallel([
+      Animated.timing(titleMarginTop, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(titleOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
   return (
     <>
       <View style={styles.container}>
         <StatusBar translucent barStyle="light-content" />
-        <TouchableOpacity style={styles.backArrowContainer}>
-          <Image source={images.backArrow} style={styles.backArrow} />
-        </TouchableOpacity>
-        <Text style={styles.title}>{'Welcome\nBack'}</Text>
+        <Animated.View style={{marginLeft: backArrowMarginLeft}}>
+          <TouchableOpacity style={styles.backArrowContainer}>
+            <Image source={images.backArrow} style={styles.backArrow} />
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View
+          style={{marginTop: titleMarginTop, opacity: titleOpacity}}>
+          <Text style={styles.title}>{'Welcome\nBack'}</Text>
+        </Animated.View>
         <TextInput
           style={styles.textInput}
           placeholder="Email"
